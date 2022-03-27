@@ -8,7 +8,7 @@ import {
 } from "remix";
 import type { MetaFunction } from "remix";
 import styles from "./styles/app.css";
-import Header from "./components/Header";
+import Header from "./components/common/Header";
 
 export function links() {
   return [{ rel: "stylesheet", href: styles }];
@@ -29,7 +29,7 @@ export default function App() {
       </head>
       <body>
         <Header />
-        <div className="bg-primary h-screen">
+        <div className="bg-primary h-screen w-screen">
           <Outlet />
         </div>
         <ScrollRestoration />

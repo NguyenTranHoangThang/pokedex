@@ -2,17 +2,20 @@ import classNames from "classnames";
 import { useEffect, useState } from "react";
 import { Link, Outlet, useParams } from "remix";
 import { generatePath, useLocation } from "react-router";
-import Type from "~/components/Type";
 import { pokemonDetail, pokemonDetailTab } from "~/model/pokemon";
 import { fetchPokemonDetail } from "~/services/pokemon-service";
-import { normalizePokemonName } from "~/helpers/helper";
 import useLocalStorage from "~/hooks/useLocalStorage";
+import Loader from "~/components/common/Loader";
+import PokemonDetailComponent from "~/components/pokemon-detail/PokemonDetailComponent";
 
 export default function PokemonDetail() {
-  const [pokemon, setPokemon] = useLocalStorage<pokemonDetail>("pokemon", {} as pokemonDetail);
+  const [pokemon, setPokemon] = useLocalStorage<pokemonDetail>(
+    "pokemon",
+    {} as pokemonDetail
+  );
   const [isDataFetching, setIsDataFetching] = useState(false);
   const { id } = useParams();
-  const locationHash = useLocation().pathname.split('/').pop();
+  const locationHash = useLocation().pathname.split("/").pop();
 
   const detailTabs: pokemonDetailTab[] = [
     { name: "stats", path: generatePath("/pokemon/:id/stats", { id }) },
@@ -20,7 +23,7 @@ export default function PokemonDetail() {
   ];
 
   const defaultTabClassName =
-    "tab tab-lg tab-lifted text-2xl w-40 font-black bg-secondary text-white";
+    "w-32 sm:w-40 tab sm:tab-lg tab-lifted text-xl sm:text-2xl bg-secondary text-white font-black";
 
   useEffect(() => {
     setIsDataFetching(true);
@@ -30,57 +33,27 @@ export default function PokemonDetail() {
     });
   }, []);
 
-  const { name, weight, height, base_experience, sprites, types } = pokemon;
+  const { name, weight, height, base_experience, sprites, types, stats, moves } = pokemon;
+  const PokemonDetailComponentProps = {
+    id, name, weight, height, base_experience, sprites, types, stats, moves
+  }
 
   return (
     <>
       {isDataFetching ? (
-        <h1>loader</h1>
+        <Loader />
       ) : (
         <div className="pt-6">
-          <div className="flex flex-wrap bg-base-content bg-opacity-50 text-white p-6 mx-20 mb-6">
-            <div className="basis-full text-4xl pb-2">
-              {normalizePokemonName(name)}
-            </div>
-            <div>
-              <img
-                src={sprites?.front_default}
-                className="w-72 h-72 object-cover bg-white"
-                alt="pokemon_image"
-              />
-            </div>
-            <div className="text-base flex flex-wrap px-10">
-              <div className="basis-full">
-                types:
-                {types?.map((item) => (
-                  <Type
-                    key={item.type.name.concat(id!)}
-                    type={item.type.name}
-                  />
-                ))}
-              </div>
-              <div className="basis-full">
-                Weight: <span className="font-bold">{+weight / 10}</span> Kg
-              </div>
-              <div className="basis-full">
-                Height: <span className="font-bold">{+height / 10}</span> m
-              </div>
-              <div className="basis-full">
-                Base experience:{" "}
-                <span className="font-bold">{base_experience}</span> exp
-              </div>
-            </div>
-          </div>
-          <div className="tabs px-44">
+          <PokemonDetailComponent {...PokemonDetailComponentProps} />
+          <div className="px-4 sm:px-10 lg:px-20 tabs">
             {detailTabs.map((tab) => {
               const match = locationHash?.localeCompare(tab.name);
-              console.log(locationHash)
               return (
                 <Link
                   className={classNames(defaultTabClassName, {
                     "tab-active text-neutral": !match,
                   })}
-                  key={id}
+                  key={tab.name}
                   to={tab.path}
                 >
                   {tab.name}
@@ -88,7 +61,9 @@ export default function PokemonDetail() {
               );
             })}
           </div>
-          <Outlet />
+          <div className="h-96 p-10 sm:px-20 lg:px-40 xl:px-64 flex flex-wrap bg-white ">
+            <Outlet />
+          </div>
         </div>
       )}
     </>

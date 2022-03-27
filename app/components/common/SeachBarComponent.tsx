@@ -1,19 +1,20 @@
-import { useEffect, useState } from "react";
-import { getPokemonDetailLink, normalizePokemonName } from "~/helpers/helper";
+import { ReactElement, useEffect, useState } from "react";
+import { v4 as uuid } from "uuid";
+import { getPokemonDetailLink, normalizeString } from "~/helpers/helper";
+import useDebounce from "~/hooks/UseDebounce";
 import useLocalStorage from "~/hooks/useLocalStorage";
+import { ResourceObject } from "~/model/pokemon";
 import { fetchPokemonList } from "~/services/pokemon-service";
-import useDebounce from "../hooks/UseDebounce";
 
-export interface PokemonUrl {
-  name: string;
-  url: string;
-}
-const SearchBarComponent = () => {
+const SearchBarComponent = (): ReactElement => {
   const [searchQuery, setSearchQuery] = useState("");
-  const [pokemonList, setPokemonList] = useLocalStorage<PokemonUrl[]>("pokemonList", []);
-  const [sugguestPokemonList, setSugguestPokemonList] = useState<PokemonUrl[]>(
+  const [pokemonList, setPokemonList] = useLocalStorage<ResourceObject[]>(
+    "pokemonList",
     []
   );
+  const [sugguestPokemonList, setSugguestPokemonList] = useState<
+    ResourceObject[]
+  >([]);
   const debouncedSearchTerm = useDebounce(searchQuery, 1000);
 
   useEffect(() => {
@@ -28,29 +29,29 @@ const SearchBarComponent = () => {
     debouncedSearchTerm ? handleSearch(debouncedSearchTerm) : handleSearch("");
   }, [debouncedSearchTerm]);
   useEffect(() => {
-    if(!pokemonList.length) {
+    if (!pokemonList.length) {
       fetchPokemonList().then(function (response) {
         setPokemonList(response.data.results);
       });
     }
-    
   }, []);
-
 
   return (
     <div className="basis-1/2">
       <input
         type="text"
-        placeholder="Type here"
-        className="input input-bordered input-md w-full p-6 m-4 mb-0"
+        placeholder="Search for Pokemon"
+        className="w-full input input-bordered input-md"
         value={searchQuery}
         onChange={(e) => setSearchQuery(e.target.value)}
       ></input>
-      <ul className="absolute w-2/4 mx-12 bg-white z-10">
+      <ul className="absolute z-10 w-2/4 bg-white">
         {sugguestPokemonList.map((pokemon) => {
           return (
-            <li key={pokemon.name} className="m-6 bg-white">
-              <a href={getPokemonDetailLink(pokemon.url)}>{normalizePokemonName(pokemon.name)}</a>
+            <li key={uuid()} className="m-6 bg-white">
+              <a href={getPokemonDetailLink(pokemon.url)}>
+                {normalizeString(pokemon.name)}
+              </a>
             </li>
           );
         })}
